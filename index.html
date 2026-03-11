@@ -1,122 +1,374 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en" class="light">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mini Shop</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark | Professional Business</title>
+    
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2830/2830284.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        /* Аз файли style.css */
-        :root {
-            font-family: 'Inter', Arial, sans-serif;
-            background: linear-gradient(1000deg, #092397, #3b4d9ef0);
-            color: white;
-            --accent: #22c55e;
-        }
-        body { margin: 0; font-family: Arial; background: #0f172a; color: white; }
-        header { padding: 14px; text-align: center; backdrop-filter: blur(10px); }
-        header h1 { margin: 0; font-size: 20px; }
-        .langs button {
-            margin: 4px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 13px;
-            background: #1e293b;
-            color: #fff;
-            cursor: pointer;
-        }
-        .products {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            padding: 14px;
-        }
-        .card {
-            background: #020617;
-            border-radius: 18px;
-            padding: 10px;
-            box-shadow: 0 10px 30px #0005;
-            transition: .3s;
-        }
-        .card:hover { transform: translateY(-3px); }
-        .card img { width: 100%; border-radius: 14px; }
-        .card h4 { margin: 8px 0 4px; font-size: 14px; }
-        .card button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 14px;
-            background: var(--accent);
-            color: #000;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s ease; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .dark .glass { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        
+        #profileImg { object-fit: cover; cursor: pointer; border: 2px solid #4f46e5; transition: 0.3s; }
+        #profileImg:hover { opacity: 0.8; transform: scale(1.05); }
     </style>
 </head>
-<body>
-    <header>
-        <h1 id="title">Маҳсулотҳо</h1>
-        <div class="langs">
-            <button onclick="setLang('ru')">RU</button>
-            <button onclick="setLang('en')">EN</button>
-            <button onclick="setLang('tj')">TJ</button>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen pb-10">
+
+    <nav class="sticky top-0 z-50 glass mb-6 px-4 py-3 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="relative group">
+                <input type="file" id="imageInput" class="hidden" accept="image/*">
+                <img id="profileImg" src="https://ui-avatars.com/api/?name=Mark&background=4f46e5&color=fff" 
+                     onclick="document.getElementById('imageInput').click()"
+                     alt="Профил" class="rounded-full w-10 h-10 shadow-md">
+            </div>
+            
+            <div class="flex items-center gap-2 border-l pl-3 border-slate-200">
+                <div class="bg-indigo-600 p-2 rounded-xl text-white">
+                    <i data-lucide="layers" class="w-5 h-5"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Mark</h1>
+            </div>
         </div>
-    </header>
 
-    <div id="banner"></div>
-    <div class="products" id="products"></div>
+        <div class="flex items-center gap-3">
+            <select id="langSelect" onchange="changeLang(this.value)" class="bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer">
+                <option value="en">EN</option>
+                <option value="tg">TJ</option>
+                <option value="ru">RU</option>
+            </select>
+            <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                <i data-lucide="moon" id="themeIcon" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <main class="max-w-5xl mx-auto px-4 space-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass p-4 rounded-3xl shadow-sm">
+                <p class="text-xs text-slate-500 font-medium uppercase mb-1" data-i18n="initialCap">Initial Capital</p>
+                <h3 id="statInitial" class="text-lg font-bold text-indigo-600">$0.00</h3>
+            </div>
+            <div class="glass p-4 rounded-3xl shadow-sm">
+                <p class="text-xs text-slate-500 font-medium uppercase mb-1" data-i18n="currentBal">Current Balance</p>
+                <h3 id="statBalance" class="text-lg font-bold text-emerald-600">$0.00</h3>
+            </div>
+            <div class="glass p-4 rounded-3xl shadow-sm">
+                <p class="text-xs text-slate-500 font-medium uppercase mb-1" data-i18n="totalExp">Total Expenses</p>
+                <h3 id="statExpenses" class="text-lg font-bold text-rose-500">$0.00</h3>
+            </div>
+            <div class="glass p-4 rounded-3xl shadow-sm">
+                <p class="text-xs text-slate-500 font-medium uppercase mb-1" data-i18n="netProfit">Net Profit (%)</p>
+                <h3 id="statProfitPer" class="text-lg font-bold text-blue-600">0%</h3>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 glass p-6 rounded-3xl shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg" data-i18n="revenueTrend">Revenue Trend</h3>
+                    <i data-lucide="trending-up" class="text-emerald-500"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+            <div class="glass p-6 rounded-3xl shadow-sm flex flex-col justify-center items-center text-center space-y-4 bg-gradient-to-br from-indigo-500/5 to-transparent">
+                <i data-lucide="quote" class="w-10 h-10 text-indigo-400 opacity-50"></i>
+                <p id="quoteText" class="italic font-medium text-slate-600 dark:text-slate-300">...</p>
+                <p class="text-xs text-indigo-500 font-bold uppercase tracking-widest" data-i18n="dailyInspiration">Daily Inspiration</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass p-6 rounded-3xl shadow-sm border-t-4 border-indigo-500">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-500"></i>
+                    <span data-i18n="newTransaction">New Transaction</span>
+                </h3>
+                <form id="txForm" class="space-y-4">
+                    <input type="text" id="itemName" placeholder="Item Name" class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-3 text-sm focus:ring-2 ring-indigo-500" required>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" id="buyPrice" placeholder="Buy Price" class="bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-3 text-sm focus:ring-2 ring-indigo-500" required>
+                        <input type="number" id="sellPrice" placeholder="Sell Price" class="bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-3 text-sm focus:ring-2 ring-indigo-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-indigo-700 transition" data-i18n="addSale">Add Sale</button>
+                </form>
+            </div>
+
+            <div class="glass p-6 rounded-3xl shadow-sm border-t-4 border-rose-500">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="minus-circle" class="w-5 h-5 text-rose-500"></i>
+                    <span data-i18n="operatingExpense">Operating Expense</span>
+                </h3>
+                <form id="expForm" class="space-y-4">
+                    <input type="text" id="expName" placeholder="Expense Name" class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-3 text-sm focus:ring-2 ring-rose-500" required>
+                    <input type="number" id="expAmount" placeholder="Amount" class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-3 text-sm focus:ring-2 ring-rose-500" required>
+                    <button type="submit" class="w-full bg-rose-500 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-rose-600 transition" data-i18n="addExpense">Record Expense</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="glass rounded-3xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="font-bold text-lg" data-i18n="history">Transaction History</h3>
+                <div class="flex gap-2">
+                    <button onclick="exportData()" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"><i data-lucide="download" class="w-5 h-5"></i></button>
+                    <button onclick="resetApp()" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            <div id="historyLog" class="max-h-80 overflow-y-auto custom-scrollbar p-2"></div>
+        </div>
+
+        <div id="setupOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden">
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] max-w-md w-full shadow-2xl text-center">
+                <h2 class="text-2xl font-bold mb-4" data-i18n="welcome">Welcome</h2>
+                <input type="number" id="initialInput" placeholder="5000" class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-2xl p-4 mb-4 text-center text-xl font-bold focus:ring-2 ring-indigo-500">
+                <button onclick="setInitialCapital()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition" data-i18n="start">Start Business</button>
+            </div>
+        </div>
+
+        <footer class="mt-12 pb-8 border-t border-slate-200 dark:border-slate-800 pt-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start mb-8">
+                <div class="space-y-4 text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2">
+                        <div class="bg-indigo-600 p-1.5 rounded-lg text-white">
+                            <i data-lucide="layers" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-xl font-bold tracking-tight">Mark ERP</span>
+                    </div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Системаи муосир барои идоракунии тиҷорати хурд ва миёна. Ҳамаи ҳисоботҳо дар як ҷо.
+                    </p>
+                </div>
+
+                <div class="flex flex-col items-center space-y-3">
+                    <h4 class="font-bold text-sm uppercase tracking-widest text-slate-400">Social</h4>
+                    <div class="flex gap-4">
+                        <a href="https://t.me/markxhex" target="_blank" class="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:text-indigo-500 transition-colors">
+                            <i data-lucide="send" class="w-5 h-5"></i>
+                        </a>
+                        <a href="https://instagram.com/markxhex" target="_blank" class="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:text-pink-600 transition-colors">
+                            <i data-lucide="instagram" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="text-center md:text-right space-y-2">
+                    <h4 class="font-bold text-sm uppercase tracking-widest text-slate-400">System Status</h4>
+                    <div class="flex items-center justify-center md:justify-end gap-2 text-emerald-500 text-sm font-medium">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Operational
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-mono">Build: 2026.v1.0.7</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-slate-100 dark:border-slate-900 gap-4">
+                <p class="text-xs text-slate-400">© 2026 Mark Business Solutions. All rights reserved.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="text-xs text-slate-400 hover:text-indigo-500">Privacy Policy</a>
+                    <a href="#" class="text-xs text-slate-400 hover:text-indigo-500">Terms</a>
+                </div>
+            </div>
+        </footer>
+    </main>
 
     <script>
-        // Аз файли config.js
-        const ADMIN_IDS = [8406121228, 1513562762, 8416877124, 7193605598];
-        const ADMIN_USERNAME = "admin_username";
-
-        // Аз файли i18n.js
-        const TEXT = {
-            ru: { title: "Наши продукты", buy: "Купить" },
-            en: { title: "Our products", buy: "Buy" },
-            tj: { title: "Маҳсулотҳо", buy: "Харидан" }
+        let state = {
+            initialCapital: 0,
+            balance: 0,
+            expenses: 0,
+            history: [],
+            lang: 'en',
+            isDark: false,
+            profilePic: null
         };
-        let lang = localStorage.getItem('lang') || 'ru';
 
-        function setLang(l) { 
-            lang = l; 
-            localStorage.setItem('lang', l); 
-            render(); 
+        const translations = {
+            en: { initialCap: "Initial Capital", currentBal: "Current Balance", totalExp: "Total Expenses", netProfit: "Net Profit (%)", revenueTrend: "Revenue Trend", dailyInspiration: "Daily Inspiration", newTransaction: "New Sale", operatingExpense: "Operating Expense", addSale: "Add Sale", addExpense: "Record Expense", history: "Transaction History", welcome: "Welcome to Mark ERP", setupDesc: "Enter starting capital", start: "Start Business", contactAdmin: "Contact Support (Telegram)", itemPlaceholder: "Item Name", buyPlaceholder: "Purchase Price", sellPlaceholder: "Sale Price", expDesc: "Expense Description" },
+            tg: { initialCap: "Сармояи аввалия", currentBal: "Тавозуни ҷорӣ", totalExp: "Хароҷоти умумӣ", netProfit: "Фоидаи холис (%)", revenueTrend: "Тренди даромад", dailyInspiration: "Илҳоми рӯзона", newTransaction: "Фурӯши нав", operatingExpense: "Хароҷоти амалиётӣ", addSale: "Иловаи фурӯш", addExpense: "Сабти хароҷот", history: "Таърихи амалиёт", welcome: "Хуш омадед ба Mark ERP", setupDesc: "Сармояро ворид кунед", start: "Оғози тиҷорат", contactAdmin: "Тамос (Telegram)", itemPlaceholder: "Номи мол", buyPlaceholder: "Нархи харид", sellPlaceholder: "Нархи фурӯш", expDesc: "Тавсифи хароҷот" },
+            ru: { initialCap: "Начальный капитал", currentBal: "Текущий баланс", totalExp: "Общие расходы", netProfit: "Чистая прибыль (%)", revenueTrend: "Тренд выручки", dailyInspiration: "Вдохновение дня", newTransaction: "Новая продажа", operatingExpense: "Операционные расходы", addSale: "Добавить продажу", addExpense: "Записать расход", history: "История транзакций", welcome: "Добро пожаловать в Mark ERP", setupDesc: "Введите капитал", start: "Начать бизнес", contactAdmin: "Поддержка (Telegram)", itemPlaceholder: "Название товара", buyPlaceholder: "Цена покупки", sellPlaceholder: "Цена продажи", expDesc: "Описание расхода" }
+        };
+
+        const quotes = {
+            en: ["Opportunities don't happen. You create them."],
+            tg: ["Имкониятҳо худ ба худ пайдо намешаванд. Шумо онҳоро месозед."],
+            ru: ["Возможности не появляются сами собой. Вы их создаете."]
+        };
+
+        let chart;
+
+        window.onload = () => {
+            const savedState = localStorage.getItem('mark_erp_data');
+            if (savedState) {
+                state = JSON.parse(savedState);
+                if (state.initialCapital === 0) showSetup();
+                if (state.profilePic) document.getElementById('profileImg').src = state.profilePic;
+                if (state.isDark) document.documentElement.classList.add('dark');
+            } else {
+                showSetup();
+            }
+            updateUI();
+            initChart();
+            lucide.createIcons();
+            setRandomQuote();
+            applyLanguage();
+        };
+
+        document.getElementById('imageInput').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    state.profilePic = e.target.result;
+                    document.getElementById('profileImg').src = e.target.result;
+                    saveState();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function showSetup() { document.getElementById('setupOverlay').classList.remove('hidden'); }
+
+        function setInitialCapital() {
+            const val = parseFloat(document.getElementById('initialInput').value);
+            if (val > 0) {
+                state.initialCapital = val;
+                state.balance = val;
+                state.history.push({ type: 'System', name: 'Starting Capital', amount: val, time: new Date().toISOString() });
+                document.getElementById('setupOverlay').classList.add('hidden');
+                saveAndRefresh();
+            }
         }
 
-        // Аз файли client.js
-        const productsDiv = document.getElementById('products');
+        document.getElementById('txForm').onsubmit = (e) => {
+            e.preventDefault();
+            const buy = parseFloat(document.getElementById('buyPrice').value);
+            const sell = parseFloat(document.getElementById('sellPrice').value);
+            state.balance += (sell - buy);
+            state.history.unshift({ type: 'Income', name: document.getElementById('itemName').value, profit: (sell - buy), time: new Date().toISOString() });
+            e.target.reset();
+            saveAndRefresh();
+        };
 
-        function render() {
-            document.getElementById('title').innerText = TEXT[lang].title;
-            productsDiv.innerHTML = '';
+        document.getElementById('expForm').onsubmit = (e) => {
+            e.preventDefault();
+            const amt = parseFloat(document.getElementById('expAmount').value);
+            state.balance -= amt;
+            state.expenses += amt;
+            state.history.unshift({ type: 'Expense', name: document.getElementById('expName').value, amount: amt, time: new Date().toISOString() });
+            e.target.reset();
+            saveAndRefresh();
+        };
+
+        function saveState() { localStorage.setItem('mark_erp_data', JSON.stringify(state)); }
+
+        function saveAndRefresh() {
+            saveState();
+            updateUI();
+            updateChart();
+        }
+
+        function updateUI() {
+            document.getElementById('statInitial').innerText = `$${state.initialCapital.toLocaleString()}`;
+            document.getElementById('statBalance').innerText = `$${state.balance.toLocaleString()}`;
+            document.getElementById('statExpenses').innerText = `$${state.expenses.toLocaleString()}`;
+            const netProfit = state.balance - state.initialCapital;
+            const netPer = state.initialCapital > 0 ? ((netProfit / state.initialCapital) * 100).toFixed(1) : 0;
+            document.getElementById('statProfitPer').innerText = `${netPer}%`;
             
-            // Маҳсулотҳои намунавӣ ё аз localStorage
-            const products = JSON.parse(localStorage.getItem('products')) || [
-                { name: "Product 1", img: "https://via.placeholder.com/150", desc: "Description" }
-            ];
+            const log = document.getElementById('historyLog');
+            log.innerHTML = state.history.map(item => `
+                <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-lg ${item.type === 'Income' ? 'bg-emerald-100 text-emerald-600' : (item.type === 'System' ? 'bg-blue-100 text-blue-600' : 'bg-rose-100 text-rose-600')}">
+                            <i data-lucide="${item.type === 'Income' ? 'arrow-up-right' : (item.type === 'System' ? 'info' : 'arrow-down-right')}" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-slate-800 dark:text-slate-200">${item.name}</p>
+                            <p class="text-[10px] text-slate-400">${new Date(item.time).toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-sm ${item.type === 'Income' ? 'text-emerald-500' : (item.type === 'System' ? 'text-blue-500' : 'text-rose-500')}">
+                            ${item.type === 'Income' ? '+' + item.profit : (item.type === 'System' ? item.amount : '-' + item.amount)}
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
 
-            products.forEach(p => {
-                productsDiv.innerHTML += `
-                    <div class="card">
-                        <img src="${p.img}" />
-                        <h4>${p.name}</h4>
-                        <button onclick="buy('${p.name}')">${TEXT[lang].buy}</button>
-                    </div>`;
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Balance', data: [], borderColor: '#4f46e5', tension: 0.4, fill: true, backgroundColor: 'rgba(79, 70, 229, 0.1)' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
+            updateChart();
         }
 
-        function buy(name) {
-            Telegram.WebApp.openTelegramLink(
-                `https://t.me/${ADMIN_USERNAME}?text=Хочу купить ${name}`
-            );
+        function updateChart() {
+            const points = [...state.history].reverse().slice(-7);
+            chart.data.labels = points.map(p => new Date(p.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            chart.data.datasets[0].data = points.map((_, i) => {
+                let tempBalance = state.initialCapital;
+                for(let j=0; j<=i; j++) {
+                   if(points[j].type === 'Income') tempBalance += points[j].profit;
+                   if(points[j].type === 'Expense') tempBalance -= points[j].amount;
+                }
+                return tempBalance;
+            });
+            chart.update();
         }
 
-        // Омодасозии Telegram WebApp
-        Telegram.WebApp.ready();
-        render();
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            state.isDark = document.documentElement.classList.contains('dark');
+            saveState();
+        }
+
+        function changeLang(val) {
+            state.lang = val;
+            applyLanguage();
+            setRandomQuote();
+            saveState();
+        }
+
+        function applyLanguage() {
+            const dict = translations[state.lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => { el.innerText = dict[el.getAttribute('data-i18n')]; });
+        }
+
+        function setRandomQuote() {
+            const qList = quotes[state.lang];
+            document.getElementById('quoteText').innerText = `"${qList[0]}"`;
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const a = document.createElement('a');
+            a.href = dataStr; a.download = "mark_erp_backup.json"; a.click();
+        }
+
+        function resetApp() { if (confirm("Reset all data?")) { localStorage.removeItem('mark_erp_data'); location.reload(); } }
     </script>
 </body>
 </html>
