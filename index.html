@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BizStrat Pro | Financial Intelligence</title>
+    <title>BizStrat Pro | Multi-Currency Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -40,9 +40,9 @@
             
             <div class="flex items-center gap-4">
                 <select id="langSelect" onchange="updateUI()" class="bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-3 py-2 text-xs font-bold outline-none cursor-pointer hover:ring-2 ring-brand-500 transition-all">
-                    <option value="tj">TJ - Тоҷикӣ</option>
-                    <option value="ru">RU - Русский</option>
-                    <option value="en">EN - English</option>
+                    <option value="tj">TJ - Тоҷикӣ (TJS)</option>
+                    <option value="ru">RU - Русский (RUB)</option>
+                    <option value="en">EN - English (USD)</option>
                 </select>
 
                 <button onclick="toggleTheme()" class="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-all">
@@ -57,17 +57,17 @@
         <div class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
                 <div>
-                    <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-2" data-tj="ЛИМИТИ ХАРОҶОТ (30%)" data-ru="ЛИМИТ РАСХОДОВ (30%)" data-en="EXPENSE LIMIT (30%)"></h3>
+                    <h3 class="text-[11px] font-bold text-amber-500 uppercase tracking-[0.2em] mb-2" id="txt-limit-title"></h3>
                     <div class="flex items-baseline gap-2">
-                        <span id="limitDisplay" class="text-3xl font-black">0</span>
-                        <span class="text-sm font-bold text-slate-400">TJS</span>
+                        <span id="limitValueDisplay" class="text-3xl font-black text-slate-900 dark:text-white">0</span>
+                        <span class="text-sm font-bold text-slate-400 cur-unit"></span>
                     </div>
                 </div>
                 <div class="md:text-right">
-                    <h3 class="text-[11px] font-bold text-brand-500 uppercase tracking-[0.2em] mb-2" data-tj="МАБЛАҒ БАРОИ РУШД (70%)" data-ru="НА РАЗВИТИЕ БИЗНЕСА (70%)" data-en="FOR BUSINESS GROWTH (70%)"></h3>
+                    <h3 class="text-[11px] font-bold text-brand-500 uppercase tracking-[0.2em] mb-2" id="txt-growth-title"></h3>
                     <div class="flex items-baseline md:justify-end gap-2 text-brand-600">
                         <span id="growthDisplay" class="text-3xl font-black text-brand-600">0</span>
-                        <span class="text-sm font-bold text-slate-400">TJS</span>
+                        <span class="text-sm font-bold text-slate-400 cur-unit"></span>
                     </div>
                 </div>
             </div>
@@ -76,14 +76,18 @@
                 <div class="w-full bg-slate-100 dark:bg-slate-800 h-5 rounded-full p-1 shadow-inner">
                     <div id="limitBar" class="limit-bar h-full rounded-full bg-brand-600 shadow-lg" style="width: 0%"></div>
                 </div>
-                <div class="flex justify-between mt-3 px-1">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">0%</span>
-                    <span id="usagePercentText" class="text-xs font-black text-brand-600 uppercase tracking-widest">USAGE: 0%</span>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">100%</span>
+                <div class="flex justify-between mt-4 px-1 items-center">
+                    <span id="spentSubLabel" class="text-[10px] font-black text-slate-400 uppercase tracking-widest"></span>
+                    
+                    <div class="flex flex-col items-center">
+                        <span id="remainingLabel" class="text-[11px] font-black uppercase tracking-widest px-5 py-2 rounded-2xl border transition-all shadow-sm"></span>
+                    </div>
+
+                    <span id="targetSubLabel" class="text-[10px] font-black text-slate-400 uppercase tracking-widest"></span>
                 </div>
             </div>
             
-            <div id="warningMsg" class="mt-4 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-500 text-center text-xs font-bold hidden animate-bounce"></div>
+            <div id="warningMsg" class="mt-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-500 text-center text-[10px] font-black uppercase tracking-widest hidden animate-pulse border border-rose-100 dark:border-rose-900/50"></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -91,16 +95,16 @@
                 <div class="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-lg">
                     <h2 class="font-bold text-lg mb-6 flex items-center gap-3">
                         <span class="w-2 h-7 bg-emerald-500 rounded-full"></span>
-                        <span data-tj="Иловаи Фурӯш" data-ru="Добавить Продажу" data-en="Add Sale"></span>
+                        <span id="txt-add-sale"></span>
                     </h2>
                     <form id="pForm" class="space-y-4">
-                        <input type="text" id="pName" placeholder="Item Name" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-emerald-500 transition-all">
+                        <input type="text" id="pName" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-emerald-500 transition-all">
                         <div class="grid grid-cols-2 gap-4">
-                            <input type="number" id="pCost" placeholder="Cost" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-emerald-500 transition-all">
-                            <input type="number" id="pPrice" placeholder="Price" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-emerald-500 transition-all">
+                            <input type="number" id="pCost" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-emerald-500 transition-all">
+                            <input type="number" id="pPrice" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-emerald-500 transition-all">
                         </div>
                         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-emerald-500/25 active:scale-95 transition-all uppercase text-xs tracking-widest">
-                            <i class="fas fa-plus mr-2"></i> Add Product
+                            <i class="fas fa-plus mr-2"></i> OK
                         </button>
                     </form>
                 </div>
@@ -108,27 +112,25 @@
                 <div class="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-lg">
                     <h2 class="font-bold text-lg mb-6 flex items-center gap-3 text-rose-500">
                         <span class="w-2 h-7 bg-rose-500 rounded-full"></span>
-                        <span data-tj="Сабти Хароҷот" data-ru="Записать Расход" data-en="Record Expense"></span>
+                        <span id="txt-add-expense"></span>
                     </h2>
                     <form id="eForm" class="space-y-4">
-                        <input type="text" id="eName" placeholder="Expense Reason" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-rose-500 transition-all">
-                        <input type="number" id="eAmount" placeholder="Amount" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-rose-500 transition-all">
+                        <input type="text" id="eName" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-rose-500 transition-all">
+                        <input type="number" id="eAmount" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 outline-none focus:ring-2 ring-rose-500 transition-all">
                         <button type="submit" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-rose-500/25 active:scale-95 transition-all uppercase text-xs tracking-widest">
-                            <i class="fas fa-minus mr-2"></i> Save Expense
+                            <i class="fas fa-minus mr-2"></i> OK
                         </button>
                     </form>
                 </div>
-
-                <button onclick="resetData()" class="w-full py-4 text-[10px] font-black text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-[0.3em]">
-                    <i class="fas fa-sync-alt mr-2"></i> Удалить все
-                </button>
+                
+                <button onclick="resetData()" class="w-full py-4 text-[10px] font-black text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-[0.3em]" id="txt-reset"></button>
             </div>
 
             <div class="lg:col-span-8 flex flex-col gap-8">
                 <div class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl flex-grow min-h-[400px]">
                     <h2 class="font-bold text-lg mb-8 flex justify-between items-center">
-                        <span data-tj="Рушди Фоидаи Холис" data-ru="График Чистой Прибыли" data-en="Net Profit Growth"></span>
-                        <span id="netProfitTotal" class="text-brand-600 font-black">0 TJS</span>
+                        <span id="txt-chart-title"></span>
+                        <span id="netProfitTotal" class="text-brand-600 font-black">0</span>
                     </h2>
                     <div class="relative h-[300px]">
                         <canvas id="mainChart"></canvas>
@@ -137,11 +139,11 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 font-black text-[10px] uppercase tracking-widest border-b dark:border-slate-800" data-tj="Таърихи Фурӯш" data-ru="История Продаж" data-en="Sales History"></div>
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 font-black text-[10px] uppercase tracking-widest border-b dark:border-slate-800" id="txt-sale-history"></div>
                         <div id="pList" class="max-h-[250px] overflow-y-auto divide-y dark:divide-slate-800"></div>
                     </div>
                     <div class="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 font-black text-[10px] uppercase tracking-widest border-b dark:border-slate-800" data-tj="Таърихи Хароҷот" data-ru="История Расходов" data-en="Expense History"></div>
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 font-black text-[10px] uppercase tracking-widest border-b dark:border-slate-800" id="txt-expense-history"></div>
                         <div id="eList" class="max-h-[250px] overflow-y-auto divide-y dark:divide-slate-800"></div>
                     </div>
                 </div>
@@ -150,6 +152,69 @@
     </main>
 
     <script>
+        const i18n = {
+            tj: {
+                unit: "TJS",
+                limitTitle: "ЛИМИТИ ХАРОҶОТ (30%)",
+                growthTitle: "БАРОИ РУШДИ БИЗНЕС (70%)",
+                spent: "САРФ",
+                rem: "БОҚИМОНДА",
+                lim: "ЛИМИТ",
+                addSale: "Иловаи Фурӯш",
+                addExpense: "Сабти Хароҷот",
+                chartTitle: "Рушди Фоидаи Холис",
+                saleHistory: "Таърихи Фурӯш",
+                expenseHistory: "Таърихи Хароҷот",
+                reset: "Тоза кардани система",
+                warn: "ЛИМИТ ГУЗАШТ!",
+                phItem: "Номи мол",
+                phCost: "Нархи харид",
+                phPrice: "Нархи фурӯш",
+                phExName: "Мақсади хароҷот",
+                phExAmt: "Маблағ"
+            },
+            ru: {
+                unit: "RUB",
+                limitTitle: "ЛИМИТ НА РАСХОДЫ (30%)",
+                growthTitle: "НА РАЗВИТИЕ БИЗНЕСА (70%)",
+                spent: "РАСХОД",
+                rem: "ОСТАТОК",
+                lim: "ЛИМИТ",
+                addSale: "Добавить продажу",
+                addExpense: "Записать расход",
+                chartTitle: "График прибыли",
+                saleHistory: "История продаж",
+                expenseHistory: "История расходов",
+                reset: "Сбросить систему",
+                warn: "ПРЕВЫШЕН ЛИМИТ!",
+                phItem: "Название товара",
+                phCost: "Цена закупки",
+                phPrice: "Цена продажи",
+                phExName: "Цель расхода",
+                phExAmt: "Сумма"
+            },
+            en: {
+                unit: "USD ($)",
+                limitTitle: "EXPENSE LIMIT (30%)",
+                growthTitle: "FOR BUSINESS GROWTH (70%)",
+                spent: "SPENT",
+                rem: "REMAINING",
+                lim: "LIMIT",
+                addSale: "Add Sale",
+                addExpense: "Add Expense",
+                chartTitle: "Net Profit Growth",
+                saleHistory: "Sales History",
+                expenseHistory: "Expense History",
+                reset: "Reset System",
+                warn: "LIMIT EXCEEDED!",
+                phItem: "Item name",
+                phCost: "Cost price",
+                phPrice: "Sale price",
+                phExName: "Expense reason",
+                phExAmt: "Amount"
+            }
+        };
+
         let db = JSON.parse(localStorage.getItem('biz_strat_v2')) || { products: [], expenses: [] };
         let chart;
 
@@ -162,25 +227,29 @@
 
         function updateUI() {
             const lang = document.getElementById('langSelect').value;
+            const t = i18n[lang];
             localStorage.setItem('biz_lang', lang);
 
-            // Translation Logic
-            document.querySelectorAll('[data-' + lang + ']').forEach(el => {
-                el.innerText = el.getAttribute('data-' + lang);
-            });
+            // Update All Texts
+            document.getElementById('txt-limit-title').innerText = t.limitTitle;
+            document.getElementById('txt-growth-title').innerText = t.growthTitle;
+            document.getElementById('txt-add-sale').innerText = t.addSale;
+            document.getElementById('txt-add-expense').innerText = t.addExpense;
+            document.getElementById('txt-chart-title').innerText = t.chartTitle;
+            document.getElementById('txt-sale-history').innerText = t.saleHistory;
+            document.getElementById('txt-expense-history').innerText = t.expenseHistory;
+            document.getElementById('txt-reset').innerText = t.reset;
 
-            const placeholders = {
-                tj: { pN: "Номи мол", pC: "Харид", pP: "Фурӯш", eN: "Мақсади хароҷот", eA: "Маблағ" },
-                ru: { pN: "Название товара", pC: "Закупка", pP: "Продажа", eN: "Цель расхода", eA: "Сумма" },
-                en: { pN: "Item Name", pC: "Cost", pP: "Price", eN: "Reason", eA: "Amount" }
-            };
-            document.getElementById('pName').placeholder = placeholders[lang].pN;
-            document.getElementById('pCost').placeholder = placeholders[lang].pC;
-            document.getElementById('pPrice').placeholder = placeholders[lang].pP;
-            document.getElementById('eName').placeholder = placeholders[lang].eN;
-            document.getElementById('eAmount').placeholder = placeholders[lang].eA;
+            // Update Currency Units
+            document.querySelectorAll('.cur-unit').forEach(el => el.innerText = t.unit);
 
-            // Financial Calculations
+            // Update Placeholders
+            document.getElementById('pName').placeholder = t.phItem;
+            document.getElementById('pCost').placeholder = t.phCost;
+            document.getElementById('pPrice').placeholder = t.phPrice;
+            document.getElementById('eName').placeholder = t.phExName;
+            document.getElementById('eAmount').placeholder = t.phExAmt;
+
             let grossProfit = 0;
             let totalExpenses = 0;
             const pList = document.getElementById('pList');
@@ -190,37 +259,35 @@
             db.products.forEach((p, i) => {
                 const profit = p.p - p.c;
                 grossProfit += profit;
-                pList.innerHTML += `
-                    <div class="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                        <span class="text-xs font-bold">${p.n}</span>
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-black text-emerald-500">+${profit}</span>
-                            <button onclick="del('p', ${i})" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </div>`;
+                pList.innerHTML += `<div class="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/30"><span class="text-xs font-bold">${p.n}</span><div class="flex items-center gap-3"><span class="text-[10px] font-black text-emerald-500">+${profit.toLocaleString()}</span><button onclick="del('p', ${i})" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></div></div>`;
             });
 
             db.expenses.forEach((e, i) => {
                 totalExpenses += e.a;
-                eList.innerHTML += `
-                    <div class="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                        <span class="text-xs font-bold text-rose-500">${e.n}</span>
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-black text-rose-500">-${e.a}</span>
-                            <button onclick="del('e', ${i})" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </div>`;
+                eList.innerHTML += `<div class="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/30"><span class="text-xs font-bold text-rose-500">${e.n}</span><div class="flex items-center gap-3"><span class="text-[10px] font-black text-rose-500">-${e.a.toLocaleString()}</span><button onclick="del('e', ${i})" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></div></div>`;
             });
 
-            // 30/70 Strategy Logic
-            const allowedLimit = grossProfit * 0.3;
-            const reinvestmentBase = grossProfit * 0.7;
-            const usagePercent = allowedLimit > 0 ? (totalExpenses / allowedLimit) * 100 : (totalExpenses > 0 ? 100 : 0);
+            const allowedLimit30 = Math.floor(grossProfit * 0.3);
+            const growth70 = Math.floor(grossProfit * 0.7);
+            const remaining = allowedLimit30 - totalExpenses; 
+            const usagePercent = allowedLimit30 > 0 ? (totalExpenses / allowedLimit30) * 100 : (totalExpenses > 0 ? 100 : 0);
 
-            document.getElementById('limitDisplay').innerText = totalExpenses.toLocaleString();
-            document.getElementById('growthDisplay').innerText = Math.max(0, Math.floor(reinvestmentBase + (allowedLimit - totalExpenses))).toLocaleString();
-            document.getElementById('netProfitTotal').innerText = (grossProfit - totalExpenses).toLocaleString() + ' TJS';
-            document.getElementById('usagePercentText').innerText = `USAGE: ${Math.floor(usagePercent)}%`;
+            document.getElementById('limitValueDisplay').innerText = allowedLimit30.toLocaleString();
+            document.getElementById('growthDisplay').innerText = growth70.toLocaleString();
+            document.getElementById('netProfitTotal').innerText = (grossProfit - totalExpenses).toLocaleString() + ' ' + t.unit;
+
+            // Bar Labels
+            document.getElementById('spentSubLabel').innerText = `${t.spent}: ${totalExpenses.toLocaleString()}`;
+            document.getElementById('targetSubLabel').innerText = `${t.lim}: ${allowedLimit30.toLocaleString()}`;
+            
+            const remEl = document.getElementById('remainingLabel');
+            remEl.innerText = `${t.rem}: ${remaining.toLocaleString()} ${t.unit}`;
+
+            if (remaining < 0) {
+                remEl.className = "text-[11px] font-black uppercase tracking-widest px-5 py-2 rounded-2xl border border-rose-500 text-rose-500 bg-rose-50 dark:bg-rose-950/20 shadow-sm";
+            } else {
+                remEl.className = "text-[11px] font-black uppercase tracking-widest px-5 py-2 rounded-2xl border border-brand-100 dark:border-brand-800/50 text-brand-600 bg-brand-50 dark:bg-brand-900/20 shadow-sm";
+            }
 
             const bar = document.getElementById('limitBar');
             bar.style.width = Math.min(usagePercent, 100) + '%';
@@ -229,9 +296,7 @@
             const warn = document.getElementById('warningMsg');
             if (usagePercent > 100) {
                 warn.classList.remove('hidden');
-                warn.innerText = lang === 'tj' ? "ДИҚҚАТ! Шумо аз лимити 30% гузаштед. Барои рушди бизнес хароҷотро кам кунед!" : 
-                                 lang === 'ru' ? "ВНИМАНИЕ! Лимит 30% превышен. Сократите расходы для роста бизнеса!" : 
-                                 "WARNING! 30% Limit exceeded. Cut expenses to save growth capital!";
+                warn.innerText = t.warn;
             } else { warn.classList.add('hidden'); }
 
             localStorage.setItem('biz_strat_v2', JSON.stringify(db));
@@ -242,11 +307,9 @@
             const isDark = document.documentElement.classList.contains('dark');
             const ctx = document.getElementById('mainChart').getContext('2d');
             if (chart) chart.destroy();
-
             let balance = 0;
             const timeline = [...db.products.map(p => ({t: p.id, v: p.p - p.c})), ...db.expenses.map(e => ({t: e.id, v: -e.a}))].sort((a,b) => a.t - b.t);
             const dataPoints = timeline.map(e => { balance += e.v; return balance; });
-
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -265,10 +328,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { 
-                        x: { display: false },
-                        y: { grid: { color: isDark ? '#1e293b' : '#f1f5f9' }, ticks: { color: '#64748b', font: { size: 10 } } }
-                    }
+                    scales: { x: { display: false }, y: { grid: { color: isDark ? '#1e293b' : '#f1f5f9' }, ticks: { color: '#64748b', font: { size: 10 } } } }
                 }
             });
         }
@@ -291,15 +351,13 @@
             updateUI();
         };
 
-        window.resetData = () => { if(confirm('Reset all data?')) { db = {products:[], expenses:[]}; updateUI(); } };
+        window.resetData = () => { if(confirm('Reset system?')) { db = {products:[], expenses:[]}; updateUI(); } };
 
-        // Initial Theme & Lang
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('themeIcon').className = 'fas fa-sun text-lg';
         }
         document.getElementById('langSelect').value = localStorage.getItem('biz_lang') || 'tj';
-        
         updateUI();
     </script>
 </body>
